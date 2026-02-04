@@ -89,7 +89,7 @@ func TestCafeCount(t *testing.T) { // проверяет работу серве
 func TestCafeSearch(t *testing.T) {
 	r := "/cafe?city=moscow&"
 	requests := []struct {
-		search string // передаваемое значение count
+		search string // передаваемое значение
 		want   int    // ожидаемое количество кафе в ответе
 	}{
 		{"search=фасоль", 0},
