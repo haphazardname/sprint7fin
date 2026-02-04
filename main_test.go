@@ -88,14 +88,14 @@ func TestCafeCount(t *testing.T) { // проверяет работу серве
 }
 
 func TestCafeSearch(t *testing.T) {
-	r := "/cafe?city=moscow&"
+	r := "/cafe?city=moscow&search="
 	requests := []struct {
 		search string // передаваемое значение
 		want   int    // ожидаемое количество кафе в ответе
 	}{
-		{"search=фасоль", 0},
-		{"search=кофе", 2},
-		{"search=вилка", 1},
+		{"фаСоль", 0},
+		{"Кофе", 2},
+		{"вилка", 1},
 	}
 
 	handler := http.HandlerFunc(mainHandle)
@@ -107,6 +107,7 @@ func TestCafeSearch(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, response.Code)
 
+		w := strings.ToLower(v.search)
 		s := strings.TrimSpace(response.Body.String())
 		sep := ","
 		result := strings.Split(s, sep)
@@ -116,8 +117,7 @@ func TestCafeSearch(t *testing.T) {
 				filteredResult = append(filteredResult, str)
 				//проверить, что полученные в ответе кафе точно содержат переданную в search строку.
 				str = strings.ToLower(str)
-				want := strings.ToLower(v.search)
-				assert.True(t, strings.Contains(str, want))
+				assert.True(t, strings.Contains(str, w))
 			}
 		}
 		assert.Len(t, filteredResult, v.want)
