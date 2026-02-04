@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCafeNegative(t *testing.T) {
@@ -60,7 +61,7 @@ func TestCafeCount(t *testing.T) { // проверяет работу серве
 		{0, 0},
 		{1, 1},
 		{2, 2},
-		{100, len(cafeList[city])},
+		{100, min(len(cafeList[city]), 100)}, //либо минимум, либо 100 (если вдруг больше 100 кафе)
 	}
 	handler := http.HandlerFunc(mainHandle)
 
@@ -69,7 +70,8 @@ func TestCafeCount(t *testing.T) { // проверяет работу серве
 		req := httptest.NewRequest("GET", r+strconv.Itoa(v.count), nil)
 		handler.ServeHTTP(response, req)
 
-		assert.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, http.StatusOK, response.Code)
+
 		s := strings.TrimSpace(response.Body.String())
 		sep := ","
 		result := strings.Split(s, sep)
@@ -79,8 +81,7 @@ func TestCafeCount(t *testing.T) { // проверяет работу серве
 				filteredResult = append(filteredResult, str)
 			}
 		}
-		l := len(filteredResult)
-		assert.Equal(t, v.want, l)
+		assert.Len(t, filteredResult, v.want)
 
 	}
 
@@ -104,7 +105,8 @@ func TestCafeSearch(t *testing.T) {
 		req := httptest.NewRequest("GET", r+v.search, nil)
 		handler.ServeHTTP(response, req)
 
-		assert.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, http.StatusOK, response.Code)
+
 		s := strings.TrimSpace(response.Body.String())
 		sep := ","
 		result := strings.Split(s, sep)
@@ -112,10 +114,13 @@ func TestCafeSearch(t *testing.T) {
 		for _, str := range result {
 			if str != "" {
 				filteredResult = append(filteredResult, str)
+				//проверить, что полученные в ответе кафе точно содержат переданную в search строку.
+				str = strings.ToLower(str)
+				want := strings.ToLower(v.search)
+				assert.True(t, strings.Contains(str, want))
 			}
 		}
-		l := len(filteredResult)
-		assert.Equal(t, v.want, l)
+		assert.Len(t, filteredResult, v.want)
 
 	}
 }
